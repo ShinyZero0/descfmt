@@ -10,3 +10,9 @@ def _describe [] {
 }
 alias describe = _describe
 ```
+## Building
+```bash
+nix develop
+dotnet publish -o ./out/
+```
+without nix, ensure you have .NET SDK 7 and zlib-devel
