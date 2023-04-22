@@ -12,7 +12,17 @@
         buildInputs = [ pkgs.dotnet-sdk_7 pkgs.clang pkgs.zlib ];
       };
       packages.system.default = nixpkgs.stdenv.mkDerivation {
-        
+        name = "descfmt-1.0";
+        unpackPhase = ":";
+
+        buildPhase = ''
+          dotnet publish -o ./out/
+        '';
+
+        installPhase = ''
+          mkdir -p $out/bin
+          cp ./out/descfmt $out/bin/
+        '';
       };
     };
 }
