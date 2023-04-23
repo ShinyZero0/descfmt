@@ -4,14 +4,14 @@
     {
         StreamReader stdin = new(Console.OpenStandardInput());
         string input = stdin.ReadToEnd();
-        TypeDef mainType = new(input);
+        DescType mainType = new(input);
         mainType.ToStringList().ForEach(Console.WriteLine);
     }
 }
 
-public class TypeDef
+public class DescType
 {
-    public TypeDef(string raw)
+    public DescType(string raw)
     {
         int firstAngle = raw.IndexOf("<");
         int lastAngle = raw.LastIndexOf(">");
@@ -34,11 +34,11 @@ public class TypeDef
             else if (c == ',' && anglesDepth == 0)
             {
                 string subTypeRaw = subTypesRaw.Substring(lastCut, i - lastCut);
-                _subTypes.Add(new TypeDef(subTypeRaw));
+                _subTypes.Add(new DescType(subTypeRaw));
                 lastCut = i + 1;
             }
         }
-        _subTypes.Add(new TypeDef(subTypesRaw.Substring(lastCut, subTypesRaw.Length - lastCut)));
+        _subTypes.Add(new DescType(subTypesRaw.Substring(lastCut, subTypesRaw.Length - lastCut)));
     }
 
     void _setTypeAndName(string[] typeAndName)
@@ -53,12 +53,12 @@ public class TypeDef
 
         if (_name != null)
             _name = _name.Trim();
-        _type = _type!.Trim();
+        _type = _type.Trim();
     }
 
     string? _name;
     string _type;
-    List<TypeDef> _subTypes = new();
+    List<DescType> _subTypes = new();
 
     public List<string> ToStringList()
     {
@@ -80,7 +80,9 @@ public class TypeDef
         else if (_subTypes.Count > 0)
         {
             List<string> subTypesStrings = new();
-            _subTypes.ForEach(st => subTypesStrings.Add(String.Concat(st.ToStringList())));
+            _subTypes.ForEach(
+                subtype => subTypesStrings.Add(String.Concat(subtype.ToStringList()))
+            );
             output[output.Count - 1] = String.Concat(
                 output[output.Count - 1],
                 "<",
