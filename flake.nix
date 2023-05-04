@@ -10,7 +10,7 @@
     in {
       devShells.x86_64-linux.default = pkgs.mkShell {
         name = "descfmt";
-        buildInputs = [ pkgs.dotnet-sdk_7 pkgs.clang pkgs.zlib ];
+        buildInputs = with pkgs; [ dotnet-sdk_7 clang zlib omnisharp-roslyn ];
       };
       packages.${system}.default = pkgs.stdenv.mkDerivation {
         pname = "descfmt";

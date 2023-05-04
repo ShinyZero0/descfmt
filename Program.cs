@@ -86,7 +86,7 @@ public class DescType
             output[output.Count - 1] = String.Concat(
                 output[output.Count - 1],
                 "<",
-                (String.Join(", ", subTypesStrings)),
+                String.Join(", ", subTypesStrings),
                 ">"
             );
         }
