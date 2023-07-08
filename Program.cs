@@ -1,11 +1,11 @@
-﻿internal static class Program
+internal static class Program
 {
     private static void Main(string[] args)
     {
         StreamReader stdin = new(Console.OpenStandardInput());
         string input = stdin.ReadToEnd();
-        DescType mainType = new(input);
-        mainType.ToStringList().ForEach(Console.WriteLine);
+        DescType rootType = new(input);
+        Console.WriteLine(rootType.FormatString());
     }
 }
 
@@ -56,41 +56,40 @@ public class DescType
         _type = _type.Trim();
     }
 
+    int _getRecursiveCount() =>
+        this._subTypes.Select(st => st._getRecursiveCount()).Sum() + this._subTypes.Count;
+
     string? _name;
     string _type;
     List<DescType> _subTypes = new();
 
-    public List<string> ToStringList()
+    public string FormatString()
     {
+        string firstLine = _name != null ? $"{_name}: {_type}" : _type;
+
         List<string> output = new();
-
-        if (_name != null)
-            output.Add($"{_name}: {_type}");
-        else
-            output.Add(_type);
-
-        if (_subTypes.Count > 2)
+        if (this._getRecursiveCount() > 3)
         {
-            output[0] = $"{output[0]}<";
-            _subTypes.ForEach(
-                subtype => subtype.ToStringList().ForEach(ststring => output.Add($"│   {ststring}"))
-            );
+            output.Add($"{firstLine}<");
+            foreach (DescType subtype in this._subTypes)
+            {
+                foreach (string ststring in subtype.FormatString().Split('\n'))
+                {
+                    output.Add($"│   {ststring}");
+                }
+            }
             output.Add(">");
+            return String.Join('\n', output);
         }
-        else if (_subTypes.Count > 0)
+        else if (this._getRecursiveCount() > 0)
         {
             List<string> subTypesStrings = new();
             _subTypes.ForEach(
-                subtype => subTypesStrings.Add(String.Concat(subtype.ToStringList()))
+                subtype => subTypesStrings.Add(String.Concat(subtype.FormatString()))
             );
-            output[output.Count - 1] = String.Concat(
-                output[output.Count - 1],
-                "<",
-                String.Join(", ", subTypesStrings),
-                ">"
-            );
+            return String.Concat(firstLine, "<", String.Join(", ", subTypesStrings), ">");
         }
 
-        return output;
+        return firstLine;
     }
 }
