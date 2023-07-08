@@ -28,7 +28,7 @@
         buildDotnetModule {
 
           pname = "descfmt";
-          version = "1.1.1";
+          version = "1.2.0";
           src = ./.;
           nugetDeps = ./deps.nix;
           dotnet-sdk = dotnetCorePackages.sdk_7_0;
