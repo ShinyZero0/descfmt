@@ -1,42 +1,46 @@
-# STILL WIP. DevShell 100% works, but i'm not sure in the package. It builds but i want to make sure it handles the icu-libs and i need to patch the csproj to false the invariantglobalization cuz whynot. 
 {
-  description = "A very basic flake";
-
+  description = "A very basic .NET flake";
   inputs = { nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; };
   outputs = { self, nixpkgs }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      dotnetPkgs = with pkgs;
+        (with dotnetCorePackages; combinePackages [ sdk_7_0 ]);
+      deps = with pkgs; [ clang zlib zlib.dev icu pkg-config ];
     in {
-      devShells.x86_64-linux.default = pkgs.mkShell {
+      apps.${system}.fetch-deps = {
+
+        type = "app";
+        program = "${self.packages.${system}.default.passthru.fetch-deps}";
+      };
+
+      devShells.${system}.default = pkgs.mkShell {
+
         name = "descfmt";
-        buildInputs = with pkgs; [ dotnet-sdk_7 clang zlib omnisharp-roslyn ];
-      };
-      packages.${system}.default = pkgs.stdenv.mkDerivation {
-        pname = "descfmt";
-				version = "1.1";
-        # unpackPhase = ":";
-				src = pkgs.fetchFromGitHub {
-					owner = "ShinyZero0";
-					repo = "descfmt";
-					rev = "1.1";
-					sha256 = "sha256-VLOZn3CiMaohO8zRtcCE/Q+iEc2UVRY8TVUeSX+L03k=";
-				};
-				nativeBuildInputs = with pkgs; [ zlib ];
-				buildInputs = with pkgs; [ icu ];
-        buildPhase = ''
-					HOME=$PWD/home
-					PATH=${pkgs.dotnet-sdk_7}/bin:$PATH
-					DOTNET_ROOT=${pkgs.dotnet-sdk_7}
-
-					mkdir -p $HOME
-          dotnet publish descfmt.csproj -o ./out/
-        '';
-
-        installPhase = ''
-          mkdir -p $out/bin
-          cp ./out/descfmt $out/bin/
+        buildInputs = with pkgs; [ dotnetPkgs omnisharp-roslyn ];
+        shellHook = ''
+          export DOTNET_ROOT=${dotnetPkgs}
         '';
       };
+      packages.${system}.default = with pkgs;
+
+        buildDotnetModule {
+
+          pname = "descfmt";
+          version = "1.1.1";
+          src = ./.;
+          nugetDeps = ./deps.nix;
+          dotnet-sdk = dotnetCorePackages.sdk_7_0;
+          dotnet-runtime = dotnetCorePackages.runtime_7_0;
+          buildInputs = deps;
+          nativeBuildInputs = [ ] ++ deps;
+          selfContainedBuild = true;
+
+          DOTNET_ROOT = "${dotnetPkgs}";
+          LOCALE_ARCHIVE = "${glibcLocales}/lib/locale/locale-archive";
+          NIX_LD_LIBRARY_PATH = lib.makeLibraryPath ([ stdenv.cc.cc ] ++ deps);
+          NIX_LD = "${stdenv.cc.libc_bin}/bin/ld.so";
+        };
     };
 }
