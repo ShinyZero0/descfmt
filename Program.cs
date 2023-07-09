@@ -79,6 +79,7 @@ public class DescType
                 }
             }
             output.Add(">");
+
             return String.Join('\n', output);
         }
         else if (this._getRecursiveCount() > 0)
